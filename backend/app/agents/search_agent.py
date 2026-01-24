@@ -1,0 +1,56 @@
+import os 
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain_community.tools.tavily_search import TavilySearchResults
+
+
+load_dotenv()
+
+
+class SearchAgent:
+    """Agent responsible for researching questions"""
+    
+    def __init__(self, model: ChatOpenAI):
+        self.model = model
+        self.search_tool = TavilySearchResults(max_results=3)
+        
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", """You are an expert researcher. Use the provided search results 
+            to give a comprehensive, accurate answer to the question. Synthesize information 
+            from multiple sources and cite key facts."""),
+            ("human", """Question: {question}
+            
+            Search Results: {search_results}
+
+            Provide a detailed answer based on the search results above.""")
+        ])
+    
+
+    def research_question(self, question: str) -> str:
+        """Research a specific question using web search"""
+        
+        print(f"🔎 Search Agent: Researching '{question}'...")
+        
+        try:
+            search_results = self.search_tool.invoke({"query": question})  # web search
+            
+            # Format search results for the LLM
+            formatted_results = "\n\n".join([
+                f"Source {i+1}: {result.get('content', '')}"
+                for i, result in enumerate(search_results)
+            ])
+            
+            # Generate answer using LLM
+            chain = self.prompt | self.model
+            response = chain.invoke({
+                "question": question,
+                "search_results": formatted_results
+            })
+            
+            print("Information gathered.")
+            return response.content
+        
+        except Exception as e:
+            print(f"Error in Search Agent: {e}")
+            return f"Could not find information for: {question}"
