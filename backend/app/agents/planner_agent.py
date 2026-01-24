@@ -41,7 +41,7 @@ class PlannerAgent:
                 "format_instructions": self.parser.get_format_instructions()
             })
             
-            print("✅ Plan created:")
+            print("Plan created:")
             for i, question in enumerate(result.questions, 1):
                 print(f"   {i}. {question}")
             
