@@ -11,9 +11,7 @@ from app.services.llm_factory import get_llm
 
 async def run_research_job(job_id: str, topic: str, model_name: str) -> None:
     """
-        Planner -> Search -> Synthesizer pipeline for a job,
-
-        job store gets updated after each stage so clients can poll progress.
+        Planner -> Search -> Synthesizer pipeline
     """
     try:
         llm = get_llm(model_name)
